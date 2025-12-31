@@ -39,6 +39,9 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Trust proxy for secure cookies behind Replit's reverse proxy
+  app.set("trust proxy", 1);
+  
   // Setup session
   app.use(
     session({
@@ -51,6 +54,8 @@ export async function registerRoutes(
       saveUninitialized: false,
       cookie: { 
         secure: app.get("env") === "production",
+        httpOnly: true,
+        sameSite: app.get("env") === "production" ? "none" : "lax",
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
       },
     })
