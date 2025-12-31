@@ -144,6 +144,11 @@ function AchievementCard({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Parse date safely, accounting for potential timezone shifts
+  const displayDate = achievement.achievementDate 
+    ? format(new Date(achievement.achievementDate + 'T00:00:00'), "MMM d, yyyy") 
+    : "N/A";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -158,7 +163,7 @@ function AchievementCard({
               <p className="font-medium text-lg leading-snug">{achievement.title}</p>
               <div className="flex items-center text-xs font-medium text-muted-foreground">
                 <Calendar className="w-3 h-3 mr-1.5 opacity-70" />
-                {achievement.achievementDate ? format(new Date(achievement.achievementDate), "MMM d, yyyy") : "N/A"}
+                {displayDate}
               </div>
             </div>
             {!achievement.coachingResponse && (
