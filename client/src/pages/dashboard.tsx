@@ -34,6 +34,13 @@ export default function Dashboard() {
     );
   }
 
+  const sortedAchievements = achievements ? [...achievements].sort((a, b) => {
+    const dateA = a.achievementDate ? new Date(a.achievementDate).getTime() : 0;
+    const dateB = b.achievementDate ? new Date(b.achievementDate).getTime() : 0;
+    if (dateB !== dateA) return dateB - dateA;
+    return (b.id || 0) - (a.id || 0);
+  }) : [];
+
   const coachingRemaining = 10 - (user.coachingCount || 0);
 
   return (
@@ -85,7 +92,7 @@ export default function Dashboard() {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              History <span className="text-muted-foreground font-normal text-sm">({achievements?.length || 0})</span>
+              History <span className="text-muted-foreground font-normal text-sm">({sortedAchievements.length})</span>
             </h3>
           </div>
 
@@ -98,7 +105,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-4">
               <AnimatePresence mode="popLayout">
-                {achievements?.map((achievement, index) => (
+                {sortedAchievements.map((achievement, index) => (
                   <AchievementCard 
                     key={achievement.id} 
                     achievement={achievement} 
@@ -109,7 +116,7 @@ export default function Dashboard() {
                 ))}
               </AnimatePresence>
               
-              {achievements?.length === 0 && (
+              {sortedAchievements.length === 0 && (
                 <div className="text-center py-20 bg-muted/30 rounded-2xl border-2 border-dashed border-muted">
                   <Award className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
                   <h3 className="text-lg font-medium text-muted-foreground">No achievements yet</h3>
