@@ -33,7 +33,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const COACHING_LIMIT = 10;
+const COACHING_LIMIT = 5;
 
 export async function registerRoutes(
   httpServer: Server,

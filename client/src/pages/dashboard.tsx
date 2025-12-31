@@ -41,7 +41,7 @@ export default function Dashboard() {
     return (b.id || 0) - (a.id || 0);
   }) : [];
 
-  const coachingRemaining = 10 - (user.coachingCount || 0);
+  const coachingRemaining = 5 - (user.coachingCount || 0);
 
   return (
     <div className="min-h-screen pb-20">
@@ -59,7 +59,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <div className="hidden md:block text-right">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coaching Requests</p>
-              <p className="text-sm font-bold">{coachingRemaining} / 10 remaining</p>
+              <p className="text-sm font-bold">{coachingRemaining} / 5 remaining</p>
             </div>
             <Button 
               variant="ghost" 
