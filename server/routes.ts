@@ -149,7 +149,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post(api.achievements.getCoaching.path, async (req, res) => {
+  app.post("/api/achievements/:id/coach", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const userId = (req.user as any).id;
     const achievementId = parseInt(req.params.id);

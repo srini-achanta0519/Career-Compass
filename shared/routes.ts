@@ -64,7 +64,7 @@ export const api = {
     },
     getCoaching: {
       method: 'POST' as const,
-      path: '/api/achievements/:id/coaching',
+      path: '/api/achievements/:id/coach',
       responses: {
         200: z.object({ coachingResponse: z.string() }),
         400: errorSchemas.validation,
