@@ -8,10 +8,11 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import MemoryStore from "memorystore";
+import pgSession from "connect-pg-simple";
+import { pool } from "./db";
 
 const scryptAsync = promisify(scrypt);
-const SessionStore = MemoryStore(session);
+const PostgresStore = pgSession(session);
 
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -41,11 +42,17 @@ export async function registerRoutes(
   // Setup session
   app.use(
     session({
-      store: new SessionStore({ checkPeriod: 86400000 }),
+      store: new PostgresStore({
+        pool,
+        createTableIfMissing: true,
+      }),
       secret: process.env.SESSION_SECRET || "your_secret_key",
       resave: false,
       saveUninitialized: false,
-      cookie: { secure: app.get("env") === "production" },
+      cookie: { 
+        secure: app.get("env") === "production",
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      },
     })
   );
 
@@ -120,6 +127,14 @@ export async function registerRoutes(
   });
 
   app.get(api.auth.user.path, (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
+    const user = req.user as any;
+    res.json({ id: user.id, username: user.username, coachingCount: user.coachingCount });
+  });
+
+  app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) {
       return res.sendStatus(401);
     }
