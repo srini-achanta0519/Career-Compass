@@ -1,6 +1,7 @@
 import { users, achievements, badges, type User, type InsertUser, type Achievement, type InsertAchievement, type Badge, type InsertBadge } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
+import { encryptText, decryptText } from "./encryption";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -33,18 +34,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAchievements(userId: number): Promise<Achievement[]> {
-    return db
+    const rawAchievements = await db
       .select()
       .from(achievements)
       .where(eq(achievements.userId, userId))
       .orderBy(desc(achievements.achievementDate), desc(achievements.id));
+    
+    // Decrypt achievement titles
+    const decryptedAchievements = await Promise.all(
+      rawAchievements.map(async (achievement) => ({
+        ...achievement,
+        title: await decryptText(achievement.title),
+      }))
+    );
+    
+    return decryptedAchievements;
   }
 
   async createAchievement(userId: number, insertAchievement: InsertAchievement): Promise<Achievement> {
     const xpEarned = 10;
+    
+    // Encrypt the achievement title before storing
+    const encryptedTitle = await encryptText(insertAchievement.title);
+    
     const [achievement] = await db
       .insert(achievements)
-      .values({ ...insertAchievement, userId, xpEarned })
+      .values({ ...insertAchievement, title: encryptedTitle, userId, xpEarned })
       .returning();
 
     // Update user XP and level
@@ -63,7 +78,11 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    return achievement;
+    // Return decrypted version for immediate display
+    return {
+      ...achievement,
+      title: insertAchievement.title, // Return original unencrypted title
+    };
   }
 
   async getBadges(userId: number): Promise<Badge[]> {
@@ -83,7 +102,13 @@ export class DatabaseStorage implements IStorage {
 
   async getAchievement(id: number): Promise<Achievement | undefined> {
     const [achievement] = await db.select().from(achievements).where(eq(achievements.id, id));
-    return achievement;
+    if (!achievement) return undefined;
+    
+    // Decrypt achievement title
+    return {
+      ...achievement,
+      title: await decryptText(achievement.title),
+    };
   }
 
   async updateAchievement(id: number, coachingResponse: string): Promise<void> {
