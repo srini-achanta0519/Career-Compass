@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from "@/components/ui/form";
 import { Card } from "@/components/ui/card";
-import { LogOut, Plus, Award, Calendar, Loader2, MessageSquare, ChevronDown, ChevronUp, Star, Shield, Trophy } from "lucide-react";
+import { LogOut, Plus, Award, Calendar, Loader2, MessageSquare, ChevronDown, ChevronUp, Star, Shield, Trophy, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Dashboard() {
   const { user, logout, isLoading: isAuthLoading } = useAuth();
@@ -52,47 +53,83 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-lg relative">
               <Award className="w-6 h-6 text-primary" />
-              <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-white">
-                {user?.level || 1}
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border-2 border-white cursor-help">
+                      {user?.level || 1}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Current Level: {user?.level || 1}</p>
+                    <p className="text-xs text-muted-foreground">Every 50 XP increases your level!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div>
               <h1 className="text-xl font-display font-bold">Achievement Tracker</h1>
               <div className="flex items-center gap-2">
                 <p className="text-xs text-muted-foreground font-medium">@{user?.username}</p>
-                <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded text-[10px] font-bold text-yellow-700 dark:text-yellow-500">
-                  <Star className="w-2.5 h-2.5 fill-current" />
-                  {user?.xp || 0} XP
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded text-[10px] font-bold text-yellow-700 dark:text-yellow-500 cursor-help">
+                        <Star className="w-2.5 h-2.5 fill-current" />
+                        {user?.xp || 0} XP
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Total Experience: {user?.xp || 0}</p>
+                      <p className="text-xs text-muted-foreground">Earn 10 XP per achievement!</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </div>
 
           <div className="hidden lg:flex items-center gap-6 px-6 py-2 bg-muted/30 rounded-full border border-white/20">
-            <div className="flex flex-col gap-1 w-32">
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-tighter">
-                <span>LVL {user?.level || 1}</span>
-                <span>{xpProgress}/{xpNeeded} XP</span>
-              </div>
-              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-500" 
-                  style={{ width: `${(xpProgress / xpNeeded) * 100}%` }}
-                />
-              </div>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col gap-1 w-32 cursor-help">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-tighter">
+                      <span>LVL {user?.level || 1}</span>
+                      <span>{xpProgress}/{xpNeeded} XP</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-500" 
+                        style={{ width: `${(xpProgress / xpNeeded) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{xpNeeded - xpProgress} XP until next Level!</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             
             <div className="flex items-center gap-2 border-l border-white/10 pl-6">
               <Trophy className="w-4 h-4 text-yellow-500" />
               <div className="flex gap-1">
                 {(user as any)?.badges?.map((badge: any) => (
-                  <div 
-                    key={badge.id}
-                    title={badge.type.replace('_', ' ')}
-                    className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20"
-                  >
-                    <Shield className="w-3 h-3 text-primary" />
-                  </div>
+                  <TooltipProvider key={badge.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div 
+                          className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 cursor-help"
+                        >
+                          <Shield className="w-3 h-3 text-primary" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="capitalize">{badge.type.replace('_', ' ')} Badge</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
                 {!(user as any)?.badges?.length && <span className="text-[10px] text-muted-foreground italic">No badges yet</span>}
               </div>
