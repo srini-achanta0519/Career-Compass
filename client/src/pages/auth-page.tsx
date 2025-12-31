@@ -9,14 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Award } from "lucide-react";
+import { Loader2, Award, KeyRound } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { z } from "zod";
 
 export default function AuthPage() {
   const { user, login, register } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("login");
 
-  // Redirect if already logged in
   if (user) {
     setLocation("/");
     return null;
@@ -25,8 +27,6 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        
-        {/* Left Side: Branding */}
         <div className="hidden md:flex flex-col justify-center space-y-6">
           <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center">
             <Award className="w-8 h-8 text-primary" />
@@ -40,7 +40,6 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Right Side: Auth Form */}
         <Card className="w-full glass-panel border-0 shadow-2xl">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="text-2xl font-bold text-center">Welcome</CardTitle>
@@ -61,6 +60,9 @@ export default function AuthPage() {
                   onSubmit={(data) => login.mutate(data)} 
                   isPending={login.isPending} 
                 />
+                <div className="mt-4 text-center">
+                  <ResetPasswordDialog />
+                </div>
               </TabsContent>
               
               <TabsContent value="register">
@@ -75,6 +77,110 @@ export default function AuthPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function ResetPasswordDialog() {
+  const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const { toast } = useToast();
+  
+  const resetSchema = z.object({
+    username: z.string().min(1, "Username is required"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  });
+
+  const form = useForm<z.infer<typeof resetSchema>>({
+    resolver: zodResolver(resetSchema),
+    defaultValues: {
+      username: "",
+      newPassword: "",
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof resetSchema>) => {
+    setIsPending(true);
+    try {
+      const res = await fetch("/api/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to reset password");
+      }
+      
+      toast({
+        title: "Success",
+        description: "Password reset successfully. Please login with your new password.",
+      });
+      setOpen(false);
+      form.reset();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="link" size="sm" className="text-muted-foreground hover:text-primary">
+          Forgot password?
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reset Password</DialogTitle>
+          <DialogDescription>
+            Enter your username and new password to reset it.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="johndoe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="submit" disabled={isPending} className="w-full">
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Reset Password
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

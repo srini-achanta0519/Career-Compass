@@ -11,6 +11,7 @@ export interface IStorage {
   getAchievement(id: number): Promise<Achievement | undefined>;
   updateAchievement(id: number, coachingResponse: string): Promise<void>;
   incrementCoachingCount(userId: number): Promise<number>;
+  updateUserPassword(id: number, password: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -59,6 +60,10 @@ export class DatabaseStorage implements IStorage {
     const newCount = (user?.coachingCount || 0) + 1;
     await db.update(users).set({ coachingCount: newCount }).where(eq(users.id, userId));
     return newCount;
+  }
+
+  async updateUserPassword(id: number, password: string): Promise<void> {
+    await db.update(users).set({ password }).where(eq(users.id, id));
   }
 }
 

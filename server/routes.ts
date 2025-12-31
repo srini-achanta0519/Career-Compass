@@ -142,6 +142,30 @@ export async function registerRoutes(
     res.json({ id: user.id, username: user.username, coachingCount: user.coachingCount });
   });
 
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { username, newPassword } = z.object({
+        username: z.string(),
+        newPassword: z.string().min(6),
+      }).parse(req.body);
+
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const hashedPassword = await hashPassword(newPassword);
+      await storage.updateUserPassword(user.id, hashedPassword);
+
+      res.status(200).json({ message: "Password updated successfully" });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
   // Achievement Routes
   app.get(api.achievements.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
