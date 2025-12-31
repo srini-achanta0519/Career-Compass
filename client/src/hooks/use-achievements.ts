@@ -24,7 +24,18 @@ export function useAchievements() {
         body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error("Failed to create achievement");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Create achievement failed:", errorText);
+        let message = "Failed to create achievement";
+        try {
+          const errorJson = JSON.parse(errorText);
+          message = errorJson.message || message;
+        } catch (e) {
+          // fallback to default
+        }
+        throw new Error(message);
+      }
       return api.achievements.create.responses[201].parse(await res.json());
     },
     onSuccess: () => {

@@ -126,20 +126,22 @@ export async function registerRoutes(
     });
   });
 
-  app.get(api.auth.user.path, (req, res) => {
+  app.get(api.auth.user.path, async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.sendStatus(401);
     }
     const user = req.user as any;
-    res.json({ id: user.id, username: user.username, coachingCount: user.coachingCount });
+    const badges = await storage.getBadges(user.id);
+    res.json({ ...user, badges });
   });
 
-  app.get("/api/user", (req, res) => {
+  app.get("/api/user", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.sendStatus(401);
     }
     const user = req.user as any;
-    res.json({ id: user.id, username: user.username, coachingCount: user.coachingCount });
+    const badges = await storage.getBadges(user.id);
+    res.json({ ...user, badges });
   });
 
   app.post("/api/reset-password", async (req, res) => {
@@ -180,6 +182,7 @@ export async function registerRoutes(
       const achievement = await storage.createAchievement((req.user as any).id, input);
       res.status(201).json(achievement);
     } catch (err) {
+      console.error("Achievement creation error:", err);
       if (err instanceof z.ZodError) {
         res.status(400).json({ message: err.errors[0].message });
       } else {
