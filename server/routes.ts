@@ -29,9 +29,10 @@ async function comparePassword(supplied: string, stored: string) {
 
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Only initialize OpenAI if API key is provided
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 const COACHING_LIMIT = 5;
 
@@ -202,6 +203,13 @@ export async function registerRoutes(
     const achievementId = parseInt(req.params.id);
 
     try {
+      // Check if OpenAI is configured
+      if (!openai) {
+        return res.status(503).json({
+          message: "AI coaching is not available. The OpenAI API key has not been configured."
+        });
+      }
+
       const user = await storage.getUser(userId);
       if (!user) return res.sendStatus(401);
       if (user.coachingCount >= COACHING_LIMIT) {

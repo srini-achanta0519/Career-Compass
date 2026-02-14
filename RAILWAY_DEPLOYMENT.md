@@ -46,7 +46,9 @@ In your Railway project settings, add these variables:
 **Required:**
 - `NODE_ENV` = `production`
 - `SESSION_SECRET` = (generate a secure random string, e.g., use `openssl rand -base64 32`)
-- `OPENAI_API_KEY` = (your OpenAI API key)
+
+**Optional:**
+- `OPENAI_API_KEY` = (your OpenAI API key - only needed for AI coaching feature)
 
 **Auto-configured by Railway:**
 - `PORT` (Railway sets this automatically)
@@ -109,7 +111,7 @@ Once deployed, Railway will provide you with:
 | `NODE_ENV` | Yes | Environment mode | `production` |
 | `DATABASE_URL` | Yes* | PostgreSQL connection string | Auto-set by Railway |
 | `SESSION_SECRET` | Yes | Secret for session encryption | Random 32+ char string |
-| `OPENAI_API_KEY` | Yes | OpenAI API key for coaching | `sk-...` |
+| `OPENAI_API_KEY` | No | OpenAI API key for AI coaching feature | `sk-...` |
 | `PORT` | No* | Server port | Auto-set by Railway |
 
 *Auto-configured when using Railway's PostgreSQL service
