@@ -48,7 +48,7 @@ export async function registerRoutes(
     session({
       store: new PostgresStore({
         pool,
-        createTableIfMissing: true,
+        createTableIfMissing: false, // Table is managed by Drizzle schema
       }),
       secret: process.env.SESSION_SECRET || "your_secret_key",
       resave: false,
