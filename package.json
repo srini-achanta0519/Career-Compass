@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "dotenv -e .env -- sh -c 'NODE_ENV=development tsx server/index.ts'",
     "build": "dotenv -e .env -- tsx script/build.ts",
-    "start": "dotenv -e .env -- sh -c 'NODE_ENV=production node dist/index.cjs'",
+    "start": "sh -c 'drizzle-kit push && NODE_ENV=production node dist/index.cjs'",
     "check": "tsc",
-    "db:push": "dotenv -e .env -- drizzle-kit push"
+    "db:push": "dotenv -e .env -- drizzle-kit push",
+    "db:push:railway": "drizzle-kit push"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
